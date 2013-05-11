@@ -1,0 +1,6 @@
+requests
+boto
+pymongo
+ipython
+flask-mongorest
+gunicorn
