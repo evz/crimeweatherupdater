@@ -24,7 +24,7 @@ def dump_by_temp(crime, weather):
     for group in grouped:
         crime_summary = []
         for day in group['days']:
-            crimes = [c for c in crime.find({'Date': {'$gt': day, '$lt': day + timedelta(hours=24)}})]
+            crimes = [c for c in crime.find({'date': {'$gt': day, '$lt': day + timedelta(hours=24)}})]
             crime_summary.append(make_meta(crimes))
         summary = {
             'total': 0,
@@ -116,19 +116,19 @@ def dumpit(crime, weather):
                         'type': 'FeatureCollection',
                         'features': [{
                             'type': 'Feature',
-                            'geometry': f.get('Location'),
+                            'geometry': f.get('location'),
                             'properties': {
-                                'title': f.get('Primary Type').title(),
-                                'description': f.get('Description').title(), 
-                                'key': '_'.join(f.get('Primary Type').lower().split()),
-                                'arrest': f.get('Arrest'),
-                                'beat': f.get('Beat'),
-                                'block': f.get('Block'),
-                                'community_area': f.get('Community Area'),
-                                'district': f.get('District'),
-                                'domestic': f.get('Domestic'),
-                                'location_desc': f.get('Location Description'),
-                                'ward': f.get('Ward')
+                                'title': f.get('primary_type').title(),
+                                'description': f.get('description').title(), 
+                                'key': '_'.join(f.get('primary_type').lower().split()),
+                                'arrest': f.get('arrest'),
+                                'beat': f.get('beat'),
+                                'block': f.get('block'),
+                                'community_area': f.get('community_area'),
+                                'district': f.get('district'),
+                                'domestic': f.get('domestic'),
+                                'location_desc': f.get('location_description'),
+                                'ward': f.get('ward')
                             }
                         } for f in crimes]
                     }

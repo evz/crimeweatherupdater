@@ -73,17 +73,21 @@ def get_crimes():
             crime[' '.join(k.split('_')).title()] = v
             del crime[k]
         try:
-            crime['Location'] = {
+            crime['location'] = {
                 'type': 'Point',
                 'coordinates': (float(crime['Longitude']), float(crime['Latitude']))
             }
         except KeyError:
             print 'Gotta geocode %s' % crime['Block']
-            crime['Location'] = geocode_it(crime['Block'])
-        crime['Updated On'] = datetime.strptime(crime['Updated On'], '%Y-%m-%dT%H:%M:%S')
-        crime['Date'] = datetime.strptime(crime['Date'], '%Y-%m-%dT%H:%M:%S')
-        dates.append(crime['Date'])
-        update = coll.update({'Case Number': crime['Case Number']}, crime, upsert=True)
+            crime['location'] = geocode_it(crime['Block'])
+        crime['updated_on'] = datetime.strptime(crime['Updated On'], '%Y-%m-%dT%H:%M:%S')
+        crime['date'] = datetime.strptime(crime['Date'], '%Y-%m-%dT%H:%M:%S')
+        dates.append(crime['date'])
+        crime_update = {}
+        for k,v in crime.items():
+            new_key = '_'.join(k.split()).lower()
+            crime_update[new_key] = v
+        update = coll.update({'case_number': crime['Case Number']}, crime_update, upsert=True)
         if update['updatedExisting']:
             existing += 1
         else:
