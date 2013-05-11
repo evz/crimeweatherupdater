@@ -18,6 +18,8 @@ MUGSHOTS = 'http://api1.chicagopolice.org/clearpath/api/1.0/mugshots'
 WEATHER_KEY = os.environ['WEATHER_KEY']
 AWS_KEY = os.environ['AWS_ACCESS_KEY']
 AWS_SECRET = os.environ['AWS_SECRET_KEY']
+MONGO_USER = os.environ['UPDATE_MONGO_USER']
+MONGO_PW = os.environ['UPDATE_MONGO_PW']
 
 class SocrataError(Exception): 
     def __init__(self, message):
@@ -58,6 +60,7 @@ def get_crimes():
     c = pymongo.MongoClient()
     db = c['chicago']
     coll = db['crime']
+    db.authenticate(MONGO_USER, password=MONGO_PW)
     crimes = []
     for offset in [0, 1000, 2000, 3000]:
         crime_offset = requests.get(CRIMES, params={'$limit': 1000, '$offset': offset})
@@ -65,29 +68,27 @@ def get_crimes():
             crimes.extend(crime_offset.json())
         else:
             raise SocrataError('Socrata API responded with a %s status code: %s' % (crimes.status_code, crimes.content[300:]))
+    print 'Fetched %s crimes from Socrata' % len(crimes)
     existing = 0
     new = 0
     dates = []
     for crime in crimes:
-        for k,v in crime.items():
-            crime[' '.join(k.split('_')).title()] = v
-            del crime[k]
         try:
             crime['location'] = {
                 'type': 'Point',
-                'coordinates': (float(crime['Longitude']), float(crime['Latitude']))
+                'coordinates': (float(crime['longitude']), float(crime['latitude']))
             }
         except KeyError:
-            print 'Gotta geocode %s' % crime['Block']
-            crime['location'] = geocode_it(crime['Block'])
-        crime['updated_on'] = datetime.strptime(crime['Updated On'], '%Y-%m-%dT%H:%M:%S')
-        crime['date'] = datetime.strptime(crime['Date'], '%Y-%m-%dT%H:%M:%S')
+            print 'Gotta geocode %s' % crime['block']
+            crime['location'] = geocode_it(crime['block'])
+        crime['updated_on'] = datetime.strptime(crime['updated_on'], '%Y-%m-%dT%H:%M:%S')
+        crime['date'] = datetime.strptime(crime['date'], '%Y-%m-%dT%H:%M:%S')
         dates.append(crime['date'])
         crime_update = {}
         for k,v in crime.items():
             new_key = '_'.join(k.split()).lower()
             crime_update[new_key] = v
-        update = coll.update({'case_number': crime['Case Number']}, crime_update, upsert=True)
+        update = coll.update({'case_number': crime['case_number']}, crime_update, upsert=True)
         if update['updatedExisting']:
             existing += 1
         else:
@@ -100,6 +101,7 @@ def get_crimes():
 def get_weather(dates):
     c = pymongo.MongoClient()
     db = c['chicago']
+    db.authenticate(MONGO_USER, password=MONGO_PW)
     coll = db['weather']
     for date in dates:
         url = 'http://api.wunderground.com/api/%s/history_%s/q/IL/Chicago.json' % (WEATHER_KEY, date)
@@ -150,8 +152,7 @@ def get_most_wanted():
             k.set_acl('public-read')
         k = Key(bucket)
         k.key = 'data/wanted/wanted_list.json'
-        k.set_contents_from_string(json.dumps(wanted_list))
-        k.set_acl('public-read')
+        k = k.copy(k.bucket.name, k.name, {'Content-Type':'application/json'}, preserve_acl=True)
     else:
         raise ClearPathError('ClearPath API returned %s when getting most wanted list: %s' % (wanted.status_code, wanted.content[300:]))
 

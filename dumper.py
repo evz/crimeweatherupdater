@@ -86,8 +86,7 @@ def dump_by_temp(crime, weather):
         name = 'data/weather/%s.json' % group['key']
         k.key = name
         k.set_contents_from_string(json.dumps(group, indent=4))
-        k.set_acl('public-read')
-        k.set_metadata('Content-Type', 'application/json')
+        k = k.copy(k.bucket.name, k.name, {'Content-Type':'application/json'}, preserve_acl=True)
         print 'Uploaded %s' % name
 
 def daterange(start_date, end_date):
@@ -102,7 +101,7 @@ def dumpit(crime, weather):
         if len(weat) > 0:
             midnight = single_date.replace(hour=0).replace(minute=0)
             one_til = single_date.replace(hour=23).replace(minute=59)
-            crimes = [c for c in crime.find({'Date': {'$gt': midnight, '$lt': one_til}})]
+            crimes = [c for c in crime.find({'date': {'$gt': midnight, '$lt': one_til}})]
             if len(crimes) > 0:
                 out = {
                     'weather': {
@@ -176,11 +175,12 @@ if __name__ == '__main__':
     import sys
     c = pymongo.MongoClient()
     db = c['chicago']
+    db.authenticate(os.environ['CHICAGO_MONGO_USER'], password=os.environ['CHICAGO_MONGO_PW'])
     crime = db['crime']
     weather = db['weather']
-    dumpit(crime, weather)
+    #dumpit(crime, weather)
     dump_by_temp(crime, weather)
-    if sys.argv > 1:
+    if sys.argv > 2:
         start, end = sys.argv[1:3]
         name = sys.argv[3]
         dump_to_csv(start, end, name)
