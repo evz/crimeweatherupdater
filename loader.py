@@ -68,7 +68,6 @@ def get_crimes():
             crimes.extend(crime_offset.json())
         else:
             raise SocrataError('Socrata API responded with a %s status code: %s' % (crimes.status_code, crimes.content[300:]))
-    print 'Fetched %s crimes from Socrata' % len(crimes)
     existing = 0
     new = 0
     dates = []
@@ -79,7 +78,6 @@ def get_crimes():
                 'coordinates': (float(crime['longitude']), float(crime['latitude']))
             }
         except KeyError:
-            print 'Gotta geocode %s' % crime['block']
             crime['location'] = geocode_it(crime['block'])
         crime['updated_on'] = datetime.strptime(crime['updated_on'], '%Y-%m-%dT%H:%M:%S')
         crime['date'] = datetime.strptime(crime['date'], '%Y-%m-%dT%H:%M:%S')
@@ -94,9 +92,8 @@ def get_crimes():
         else:
             new += 1
     unique_dates = list(set([datetime.strftime(d, '%Y%m%d') for d in dates]))
-    get_weather(unique_dates)
-    print 'Updated %s, Created %s' % (existing, new)
-    return None
+    weather_updated = get_weather(unique_dates)
+    return 'Updated %s, Created %s %s' % (existing, new, weather_updated)
 
 def get_weather(dates):
     c = pymongo.MongoClient()
@@ -121,9 +118,9 @@ def get_weather(dates):
             weather['DATE'] = datetime.strptime(date, '%Y%m%d')
             update = {'$set': weather}
             up = coll.update({'DATE': datetime.strptime(date, '%Y%m%d')}, update, upsert=True)
-            print 'Updated %s weather' % (date)
         else:
             raise WeatherError('Wunderground API responded with %s: %s' % (weat.status_code, weat.content[300:]))
+    return 'Updated weather for %s' % ', '.join(dates)
 
 def get_most_wanted():
     wanted = requests.get(MOST_WANTED, params={'max': 100})

@@ -2,3 +2,6 @@ requests
 boto
 pymongo
 ipython
+celery==3.0.19
+raven
+pytz

@@ -94,10 +94,10 @@ def daterange(start_date, end_date):
     for n in range(int((end_date - start_date).days)):
         yield start_date + timedelta(n)
 
-def dumpit(crime, weather):
+def dumpit(crime, weather, start_date=datetime(2013, 4, 25), end_date=datetime.now()):
     s3conn = S3Connection(AWS_KEY, AWS_SECRET)
     bucket = s3conn.get_bucket('crime.static-eric.com')
-    for single_date in daterange(datetime(2013, 4, 25), datetime.now()):
+    for single_date in daterange(start_date, end_date):
         weat = [w for w in weather.find({'DATE': single_date})]
         if len(weat) > 0:
             midnight = single_date.replace(hour=0).replace(minute=0)
