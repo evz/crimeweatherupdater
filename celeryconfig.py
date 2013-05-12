@@ -19,10 +19,10 @@ CELERY_LOG_FILE=os.path.join(os.path.dirname(__file__), '../../run/celery.log')
 CELERYBEAT_SCHEDULE = {
     'load-every-morning': {
         'task': 'tasks.load',
-        'schedule': crontab(hour=5, minute=30),
+        'schedule': crontab(hour='5,15', minute=30),
      },
     'dump-every-morning': {
         'task': 'tasks.dump',
-        'schedule': crontab(hour=5, minute=30),
+        'schedule': crontab(hour='6,18', minute=30),
      },
 }
