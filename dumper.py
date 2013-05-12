@@ -86,7 +86,8 @@ def dump_by_temp(crime, weather):
         name = 'data/weather/%s.json' % group['key']
         k.key = name
         k.set_contents_from_string(json.dumps(group, indent=4))
-        k = k.copy(k.bucket.name, k.name, {'Content-Type':'application/json'}, preserve_acl=True)
+        k = k.copy(k.bucket.name, k.name, {'Content-Type':'application/json'})
+        k.set_acl('public-read')
         print 'Uploaded %s' % name
 
 def daterange(start_date, end_date):
@@ -138,12 +139,14 @@ def dumpit(crime, weather):
                 k = Key(bucket)
                 k.key = 'data/%s/%s/%s.json' % (single_date.year, single_date.month, single_date.day)
                 k.set_contents_from_string(json_util.dumps(out, indent=4))
-                k = k.copy(k.bucket.name, k.name, {'Content-Type':'application/json'}, preserve_acl=True)
+                k = k.copy(k.bucket.name, k.name, {'Content-Type':'application/json'})
+                k.set_acl('public-read')
                 print 'Uploaded %s' % k.key
 
 def dump_to_csv(start_date, end_date, out_name):
     all_rows = []
     for date in daterange(datetime.strptime(start_date, '%Y-%m-%d'), datetime.strptime(end_date, '%Y-%m-%d')):
+        print 'Fetching %s' % date
         year, month, day = datetime.strftime(date, '%Y/%m/%d').split('/')
         r = requests.get('http://crime.static-eric.com/data/%s/%s/%s.json' % (year, int(month), int(day)))
         meta = r.json()['meta']
@@ -169,7 +172,8 @@ def dump_to_csv(start_date, end_date, out_name):
     k = Key(bucket)
     k.key = 'data/weather/%s.csv' % out_name
     k.set_contents_from_string(out_f.getvalue())
-    k = k.copy(k.bucket.name, k.name, {'Content-Type':'text/csv'}, preserve_acl=True)
+    k = k.copy(k.bucket.name, k.name, {'Content-Type':'text/csv'})
+    k.set_acl('public-read')
 
 if __name__ == '__main__':
     import sys
@@ -178,8 +182,8 @@ if __name__ == '__main__':
     db.authenticate(os.environ['CHICAGO_MONGO_USER'], password=os.environ['CHICAGO_MONGO_PW'])
     crime = db['crime']
     weather = db['weather']
-    #dumpit(crime, weather)
-    dump_by_temp(crime, weather)
+    dumpit(crime, weather)
+    #dump_by_temp(crime, weather)
     if sys.argv > 2:
         start, end = sys.argv[1:3]
         name = sys.argv[3]

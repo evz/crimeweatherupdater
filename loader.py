@@ -152,7 +152,8 @@ def get_most_wanted():
             k.set_acl('public-read')
         k = Key(bucket)
         k.key = 'data/wanted/wanted_list.json'
-        k = k.copy(k.bucket.name, k.name, {'Content-Type':'application/json'}, preserve_acl=True)
+        k = k.copy(k.bucket.name, k.name, {'Content-Type':'application/json'})
+        k.set_acl('public-read')
     else:
         raise ClearPathError('ClearPath API returned %s when getting most wanted list: %s' % (wanted.status_code, wanted.content[300:]))
 
