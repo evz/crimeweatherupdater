@@ -20,7 +20,7 @@ def load():
     return crimes
 
 @celery.task
-def dump():
+def dump_json():
     c = pymongo.MongoClient()
     db = c['chicago']
     db.authenticate(os.environ['CHICAGO_MONGO_USER'], password=os.environ['CHICAGO_MONGO_PW'])
@@ -30,9 +30,18 @@ def dump():
     end_date = datetime.now()
     dumpit(crime, weather, start_date=start_date, end_date=end_date)
     dump_by_temp(crime, weather)
+    return 'Dumped. Dumped real good'
+
+@celery.task
+def dump_csv():
+    c = pymongo.MongoClient()
+    db = c['chicago']
+    db.authenticate(os.environ['CHICAGO_MONGO_USER'], password=os.environ['CHICAGO_MONGO_PW'])
+    crime = db['crime']
+    weather = db['weather']
     csv_start = datetime.now().replace(month=1).replace(day=1).strftime('%Y-%m-%d')
     end = datetime.now() - timedelta(days=7)
     csv_end = end.strftime('%Y-%m-%d')
     csv_name = end.strftime('%Y')
     dump_to_csv(csv_start, csv_end, csv_name)
-    return 'Dumped. Dumped real good'
+    return 'Dumped that CSV'

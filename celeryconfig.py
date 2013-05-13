@@ -17,12 +17,16 @@ CELERY_DEFAULT_QUEUE = 'crimevsweather'
 CELERY_LOG_FILE=os.path.join(os.path.dirname(__file__), '../../run/celery.log')
 
 CELERYBEAT_SCHEDULE = {
-    'load-every-morning': {
+    'load-everything': {
         'task': 'tasks.load',
         'schedule': crontab(hour='5,15', minute=30),
      },
-    'dump-every-morning': {
-        'task': 'tasks.dump',
+    'dump-json': {
+        'task': 'tasks.dump_json',
         'schedule': crontab(hour='6,18', minute=30),
+     },
+    'dump-csv': {
+        'task': 'tasks.dump_csv',
+        'schedule': crontab(hour='7,19', minute=30),
      },
 }
