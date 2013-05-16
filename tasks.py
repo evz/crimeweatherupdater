@@ -34,14 +34,11 @@ def dump_json():
 
 @celery.task
 def dump_csv():
-    c = pymongo.MongoClient()
-    db = c['chicago']
-    db.authenticate(os.environ['CHICAGO_MONGO_USER'], password=os.environ['CHICAGO_MONGO_PW'])
-    crime = db['crime']
-    weather = db['weather']
-    csv_start = datetime.now().replace(month=1).replace(day=1).strftime('%Y-%m-%d')
-    end = datetime.now() - timedelta(days=7)
-    csv_end = end.strftime('%Y-%m-%d')
-    csv_name = end.strftime('%Y')
+    csv_start = datetime.now().replace(month=1).replace(day=1)
+    csv_end = datetime.now() - timedelta(days=7)
+    csv_name = csv_end.strftime('%Y')
     dump_to_csv(csv_start, csv_end, csv_name)
+    print 'Dumped %s - %s' % (csv_start, csv_end)
+    full_dump_start = datetime(2001,1,1,0,0)
+    dump_to_csv(full_dump_start, csv_end, 'full_dump')
     return 'Dumped that CSV'

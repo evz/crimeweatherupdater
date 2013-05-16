@@ -144,25 +144,29 @@ def dumpit(crime, weather, start_date=datetime(2013, 4, 25), end_date=datetime.n
                 print 'Uploaded %s' % k.key
 
 def dump_to_csv(start_date, end_date, out_name):
+    c = pymongo.MongoClient()
+    db = c['chicago']
+    db.authenticate(os.environ['CHICAGO_MONGO_USER'], password=os.environ['CHICAGO_MONGO_PW'])
+    crime = db['crime']
+    weather = db['weather']
     all_rows = []
-    for date in daterange(datetime.strptime(start_date, '%Y-%m-%d'), datetime.strptime(end_date, '%Y-%m-%d')):
-        print 'Fetching %s' % date
-        year, month, day = datetime.strftime(date, '%Y/%m/%d').split('/')
-        r = requests.get('http://crime.static-eric.com/data/%s/%s/%s.json' % (year, int(month), int(day)))
-        meta = r.json()['meta']
-        if type(meta) == list:
-            meta = meta[0]
-        weather = r.json()['weather']
-        out = {
-            'date': datetime.strftime(date, '%m-%d-%Y'),
-            'temp_max': weather['FAHR_MAX'],
-            'total_count': meta['total']['value'],
-        }
-        fieldnames = sorted(out.keys())
-        for category in meta['detail']:
-            fieldnames.append(category['key'])
-            out[category['key']] = category['value']
-        all_rows.append(out)
+    for date in daterange(start_date, end_date):
+        midnight = date.replace(hour=0).replace(minute=0)
+        one_til = date.replace(hour=23).replace(minute=59)
+        days_crimes = list(crime.find({'date': {'$gt': midnight, '$lt': one_til}}))
+        if days_crimes:
+            meta = make_meta(days_crimes)
+            days_weather = weather.find_one({'DATE': date})
+            out = {
+                'date': datetime.strftime(date, '%m-%d-%Y'),
+                'temp_max': weather['FAHR_MAX'],
+                'total_count': meta['total']['value'],
+            }
+            fieldnames = sorted(out.keys())
+            for category in meta['detail']:
+                fieldnames.append(category['key'])
+                out[category['key']] = category['value']
+            all_rows.append(out)
     out_f = StringIO()
     writer = csv.DictWriter(out_f, fieldnames=fieldnames)
     writer.writerow(dict( (n,n) for n in fieldnames ))
