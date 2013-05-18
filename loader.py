@@ -39,22 +39,26 @@ class ClearPathError(Exception):
 # In Feature properties, define title and description keys. Can also 
 # define marker-color, marker-size, marker-symbol and marker-zoom.
 
-def geocode_it(block):
-    add_parts = block.split()
-    add_parts[0] = str(int(add_parts[0].replace('X', '0')))
-    address = '%s Chicago, IL' % ' '.join(add_parts)
-    params = {'address': address, 'sensor': 'false'}
-    u = sign_google('http://maps.googleapis.com/maps/api/geocode/json', params)
-    r = requests.get(u)
-    resp = json.loads(r.content.decode('utf-8'))
-    try:
-        res = resp['results'][0]
-        p = (float(res['geometry']['location']['lng']), float(res['geometry']['location']['lat']))
-        feature = {'type': 'Point', 'coordinates': p}
-    except IndexError:
-        print resp
-        feature = {'type': 'Point'}
-    return feature
+def geocode_it(block, coll):
+    match = coll.find_one({'block': block, 'location.coordinates': {'$ne': None}})
+    if match:
+        return match['location']
+    else:
+        add_parts = block.split()
+        add_parts[0] = str(int(add_parts[0].replace('X', '0')))
+        address = '%s Chicago, IL' % ' '.join(add_parts)
+        params = {'address': address, 'sensor': 'false'}
+        u = sign_google('http://maps.googleapis.com/maps/api/geocode/json', params)
+        r = requests.get(u)
+        resp = json.loads(r.content.decode('utf-8'))
+        try:
+            res = resp['results'][0]
+            p = (float(res['geometry']['location']['lng']), float(res['geometry']['location']['lat']))
+            feature = {'type': 'Point', 'coordinates': p}
+        except IndexError:
+            print resp
+            feature = {'type': 'Point'}
+        return feature
 
 def get_crimes():
     c = pymongo.MongoClient()
@@ -78,7 +82,7 @@ def get_crimes():
                 'coordinates': (float(crime['longitude']), float(crime['latitude']))
             }
         except KeyError:
-            crime['location'] = geocode_it(crime['block'])
+            crime['location'] = geocode_it(crime['block'], coll)
         crime['updated_on'] = datetime.strptime(crime['updated_on'], '%Y-%m-%dT%H:%M:%S')
         crime['date'] = datetime.strptime(crime['date'], '%Y-%m-%dT%H:%M:%S')
         dates.append(crime['date'])
