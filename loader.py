@@ -64,6 +64,7 @@ def get_crimes():
     c = pymongo.MongoClient()
     db = c['chicago']
     coll = db['crime']
+    iucr_codes = db['iucr']
     db.authenticate(MONGO_USER, password=MONGO_PW)
     crimes = []
     for offset in [0, 1000, 2000, 3000]:
@@ -90,6 +91,15 @@ def get_crimes():
         for k,v in crime.items():
             new_key = '_'.join(k.split()).lower()
             crime_update[new_key] = v
+        try:
+            iucr = str(int(crime_update['iucr']))
+        except ValueError:
+            iucr = crime_update['iucr']
+        try:
+            crime_type = iucr_codes.find_one({'iucr': iucr})['type']
+        except (TypeError, KeyError):
+            crime_type = None
+        crime_update['type'] = crime_type
         update = coll.update({'case_number': crime['case_number']}, crime_update, upsert=True)
         if update['updatedExisting']:
             existing += 1
