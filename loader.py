@@ -95,6 +95,7 @@ def get_crimes():
             iucr = str(int(crime_update['iucr']))
         except ValueError:
             iucr = crime_update['iucr']
+        crime_update['iucr'] = iucr
         try:
             crime_type = iucr_codes.find_one({'iucr': iucr})['type']
         except (TypeError, KeyError):
