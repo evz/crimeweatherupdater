@@ -47,17 +47,15 @@ def geocode_it(block, coll):
         add_parts = block.split()
         add_parts[0] = str(int(add_parts[0].replace('X', '0')))
         address = '%s Chicago, IL' % ' '.join(add_parts)
-        params = {'address': address, 'sensor': 'false'}
-        u = 'http://maps.googleapis.com/maps/api/geocode/json'
+        bbox = "42.023134979999995,-87.52366115999999,41.644286009999995,-87.94010087999999"
+        key = 'Fmjtd|luub2d0rn1,rw=o5-9u2ggw'
+        params = {'location': address, 'key': key, 'boundingBox': bbox}
+        u = 'http://open.mapquestapi.com/geocoding/v1/address'
         r = requests.get(u, params=params)
         resp = json.loads(r.content.decode('utf-8'))
-        try:
-            res = resp['results'][0]
-            p = (float(res['geometry']['location']['lng']), float(res['geometry']['location']['lat']))
-            feature = {'type': 'Point', 'coordinates': p}
-        except IndexError:
-            print resp
-            feature = {'type': 'Point'}
+        locations = resp['results'][0]['locations']
+        p = (float(locations[0]['latLng']['lng']), float(locations[0]['latLng']['lat']))
+        feature = {'type': 'Point', 'coordinates': p}
         return feature
 
 def get_crimes():
