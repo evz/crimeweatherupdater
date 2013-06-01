@@ -6,7 +6,7 @@ import pymongo
 from operator import itemgetter
 from itertools import groupby
 from datetime import datetime, timedelta
-from utils import sign_google, make_meta
+from utils import make_meta
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 
@@ -48,8 +48,8 @@ def geocode_it(block, coll):
         add_parts[0] = str(int(add_parts[0].replace('X', '0')))
         address = '%s Chicago, IL' % ' '.join(add_parts)
         params = {'address': address, 'sensor': 'false'}
-        u = sign_google('http://maps.googleapis.com/maps/api/geocode/json', params)
-        r = requests.get(u)
+        u = 'http://maps.googleapis.com/maps/api/geocode/json'
+        r = requests.get(u, params=params)
         resp = json.loads(r.content.decode('utf-8'))
         try:
             res = resp['results'][0]
@@ -67,7 +67,7 @@ def get_crimes():
     iucr_codes = db['iucr']
     db.authenticate(MONGO_USER, password=MONGO_PW)
     crimes = []
-    for offset in [0, 1000, 2000, 3000]:
+    for offset in range(0, 10000, 1000):
         crime_offset = requests.get(CRIMES, params={'$limit': 1000, '$offset': offset})
         if crime_offset.status_code == 200:
             crimes.extend(crime_offset.json())
