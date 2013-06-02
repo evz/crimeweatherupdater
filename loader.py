@@ -84,6 +84,14 @@ def get_crimes():
             crime['location'] = geocode_it(crime['block'], coll)
         crime['updated_on'] = datetime.strptime(crime['updated_on'], '%Y-%m-%dT%H:%M:%S')
         crime['date'] = datetime.strptime(crime['date'], '%Y-%m-%dT%H:%M:%S')
+        if crime['arrest'] == 'true':
+            crime['arrest'] = True
+        elif crime['arrest'] == 'false':
+            crime['arrest'] = False
+        if crime['domestic'] == 'true':
+            crime['domestic'] = True
+        elif crime['domestic'] = 'false':
+            crime['domestic'] = False
         dates.append(crime['date'])
         crime_update = {}
         for k,v in crime.items():

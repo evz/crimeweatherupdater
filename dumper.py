@@ -179,6 +179,48 @@ def dump_to_csv(start_date, end_date, out_name):
     k = k.copy(k.bucket.name, k.name, {'Content-Type':'text/csv'})
     k.set_acl('public-read')
 
+def dump_aggregate(crime_type):
+    pipe = [
+        {
+            '$match': {
+                'primary_type': crime_type
+            }
+        }, 
+        {
+            '$group': {
+                '_id': {
+                    'month_reported': {
+                        '$month': '$date'
+                    }, 
+                    'year_reported': {
+                        '$year': '$date'
+                    }
+                }, 
+                'count': {'$sum': 1}
+            }
+        }, 
+        {
+            '$sort': {'count': -1}
+        }
+    ]
+    results = crime.aggregate(pipe)
+    output = []
+    for result in results['result']:
+        date = '-'.join([result['month_reported'], result['year_reported']])
+        output.append({'date': date, 'count': result['count']})
+    out_f = StringIO()
+    fieldnames = output[0].keys()
+    writer = csv.DictWriter(out_f, fieldnames=fieldnames)
+    writer.writerow(dict( (n,n) for n in fieldnames ))
+    writer.writerows(output)
+    s3conn = S3Connection(AWS_KEY, AWS_SECRET)
+    bucket = s3conn.get_bucket('crime.static-eric.com')
+    k = Key(bucket)
+    k.key = 'data/aggregates/%s.csv' % crime_type
+    k.set_contents_from_string(out_f.getvalue())
+    k = k.copy(k.bucket.name, k.name, {'Content-Type':'text/csv'})
+    k.set_acl('public-read')
+
 if __name__ == '__main__':
     import sys
     c = pymongo.MongoClient()

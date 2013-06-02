@@ -1,3 +1,4 @@
 *.pyc
 celerybeat-schedule
 venv
+.DS_Store
