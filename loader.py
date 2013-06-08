@@ -95,8 +95,10 @@ def update_crimediffs(case_numbers):
         g.add(fname)
         g.commit(message='Case Number %s updated at %s' % (case, updated_on))
         committed += 1
-    o = repo.remotes[0]
-    o.push()
+    print 'Skipped: %s Committed: %s' % (skipped, committed)
+    if committed > 0:
+        o = repo.remotes[0]
+        o.push()
     return skipped, committed
 
 def get_crimes():
@@ -154,7 +156,7 @@ def get_crimes():
             existing += 1
         else:
             new += 1
-    skipped, committed = update_crime_diffs(case_numbers)
+    skipped, committed = update_crimediffs(case_numbers)
     unique_dates = list(set([datetime.strftime(d, '%Y%m%d') for d in dates]))
     weather_updated = get_weather(unique_dates)
     return 'Updated %s, Created %s %s, Skipped %s, Committed %s' % (existing, new, weather_updated, skipped, committed)

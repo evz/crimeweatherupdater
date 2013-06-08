@@ -16,7 +16,7 @@ register_signal(client)
 @celery.task
 def load():
     crimes = get_crimes()
-    get_most_wanted()
+    # get_most_wanted()
     return crimes
 
 @celery.task
