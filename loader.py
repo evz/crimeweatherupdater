@@ -71,6 +71,20 @@ def get_crimes():
             crimes.extend(crime_offset.json())
         else:
             raise SocrataError('Socrata API responded with a %s status code: %s' % (crimes.status_code, crimes.content[300:]))
+    case_numbers = [c['case_number'] for c in crimes]
+    needs_updating = list(coll.find({'case_number': {'$in': case_numbers}}))
+    new_cases = list(set(case_numbers).difference(set([r['case_number'] for r in needs_updating])))
+    repo = Repo('../crimediffs')
+    g = repo.git
+    for record in needs_updating:
+        fname = '../crimediffs/%s.json' % record['case_number']
+        updated_on = record['update_on'].strftime('%a, %d %b %Y %H:%M:%S %z')
+        os.environ['GIT_COMMITTER_DATE'] = updated_on
+        f = open(fname, 'wb')
+        f.write(json_util.dumps(record))
+        f.close()
+        g.add(fname)
+        g.commit(message='Case Number %s updated at %s' % (record['case_number'], updated_on))
     existing = 0
     new = 0
     dates = []
@@ -90,7 +104,7 @@ def get_crimes():
             crime['arrest'] = False
         if crime['domestic'] == 'true':
             crime['domestic'] = True
-        elif crime['domestic'] = 'false':
+        elif crime['domestic'] == 'false':
             crime['domestic'] = False
         dates.append(crime['date'])
         crime_update = {}
@@ -108,10 +122,20 @@ def get_crimes():
             crime_type = None
         crime_update['type'] = crime_type
         update = coll.update({'case_number': crime['case_number']}, crime_update, upsert=True)
+        if crime['case_number'] in new_cases:
+            fname = '../crimediffs/%s.json' % crime['case_number']
+            os.environ['GIT_COMMITTER_DATE'] = crime['updated_on'].strftime('%a, %d %b %Y %H:%M:%S %z')
+            f = open(fname, 'wb')
+            f.write(json_util.dumps(crime))
+            f.close()
+            g.add(fname)
+            g.commit(message='Case Number %s updated at %s' % (crime['case_number'], updated_on))
         if update['updatedExisting']:
             existing += 1
         else:
             new += 1
+    o = repo.remotes[0]
+    o.push()
     unique_dates = list(set([datetime.strftime(d, '%Y%m%d') for d in dates]))
     weather_updated = get_weather(unique_dates)
     return 'Updated %s, Created %s %s' % (existing, new, weather_updated)
