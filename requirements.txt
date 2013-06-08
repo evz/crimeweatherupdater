@@ -5,3 +5,4 @@ ipython
 celery==3.0.19
 raven
 pytz
+GitPython
