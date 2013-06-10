@@ -93,7 +93,7 @@ def update_crimediffs(case_numbers):
         updated_on = case['updated_on'].strftime('%a, %d %b %Y %H:%M:%S %z')
         os.environ['GIT_COMMITTER_DATE'] = updated_on
         g.add(fname)
-        g.commit(message='Case Number %s updated at %s' % (case, updated_on))
+        g.commit(message='Case Number %s updated at %s' % (case['case_number'], updated_on))
         committed += 1
     print 'Skipped: %s Committed: %s' % (skipped, committed)
     if committed > 0:
