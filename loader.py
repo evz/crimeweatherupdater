@@ -80,17 +80,17 @@ def update_crimediffs(case_numbers):
             f = open(fname, 'rb')
             written = f.read()
             f.close()
-            stored = json_util.dumps(case)
+            stored = json_util.dumps(case, indent=4)
             if sha1(written).hexdigest() == sha1(stored).hexdigest():
                 skipped += 1
                 continue
             else:
                 f = open(fname, 'wb')
-                f.write(stored)
+                f.write(stored, indent=4)
                 f.close()
         else:
             f = open(fname, 'wb')
-            f.write(json_util.dumps(case))
+            f.write(json_util.dumps(case, indent=4))
             f.close()
         updated_on = case['updated_on'].strftime('%a, %d %b %Y %H:%M:%S %z')
         os.environ['GIT_COMMITTER_DATE'] = updated_on
