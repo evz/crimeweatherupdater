@@ -66,15 +66,17 @@ def update_crimediffs(case_numbers):
     db = c['chicago']
     coll = db['crime']
     db.authenticate(MONGO_USER, password=MONGO_PW)
-    os.chdir(os.path.join(os.path.dirname(__file__), '../crimediffs'))
-    repo = Repo('.')
+    dir_path = os.path.abspath(os.path.curdir)
+    repo_path = os.path.join(dir_path, '../crimediffs')
+    repo = Repo(repo_path)
     g = repo.git
-    cases = coll.find({'case_number': {'$in': case_numbers}})
+    cases = coll.find({'case_number': {'$in': case_numbers}}, timeout=False)
     committed = 0
     skipped = 0
     for case in cases:
-        fname = 'reports/%s.json' % case['case_number']
-        try:
+        fname = os.path.join(repo_path, 'reports/%s.json' % case['case_number'])
+        print fname
+        if os.path.exists(fname):
             f = open(fname, 'rb')
             written = f.read()
             f.close()
@@ -86,7 +88,7 @@ def update_crimediffs(case_numbers):
                 f = open(fname, 'wb')
                 f.write(stored)
                 f.close()
-        except IOError:
+        else:
             f = open(fname, 'wb')
             f.write(json_util.dumps(case))
             f.close()
@@ -95,11 +97,22 @@ def update_crimediffs(case_numbers):
         g.add(fname)
         g.commit(message='Case Number %s updated at %s' % (case['case_number'], updated_on))
         committed += 1
-    print 'Skipped: %s Committed: %s' % (skipped, committed)
     if committed > 0:
-        o = repo.remotes[0]
-        o.push()
+        o = repo.remotes.origin
+        pushinfo = o.push()
+        print pushinfo[0].summary
+    print 'Skipped: %s Committed: %s' % (skipped, committed)
     return skipped, committed
+
+def fetch_crimes(count):
+    crimes = []
+    for offset in range(0, count, 1000):
+        crime_offset = requests.get(CRIMES, params={'$limit': 1000, '$offset': offset})
+        if crime_offset.status_code == 200:
+            crimes.extend(crime_offset.json())
+        else:
+            raise SocrataError('Socrata API responded with a %s status code: %s' % (crimes.status_code, crimes.content[300:]))
+    return crimes
 
 def get_crimes():
     c = pymongo.MongoClient()
@@ -107,13 +120,7 @@ def get_crimes():
     coll = db['crime']
     iucr_codes = db['iucr']
     db.authenticate(MONGO_USER, password=MONGO_PW)
-    crimes = []
-    for offset in range(0, 10000, 1000):
-        crime_offset = requests.get(CRIMES, params={'$limit': 1000, '$offset': offset})
-        if crime_offset.status_code == 200:
-            crimes.extend(crime_offset.json())
-        else:
-            raise SocrataError('Socrata API responded with a %s status code: %s' % (crimes.status_code, crimes.content[300:]))
+    crimes = fetch_crimes(10000)
     case_numbers = [c['case_number'] for c in crimes]
     existing = 0
     new = 0
