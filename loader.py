@@ -86,7 +86,7 @@ def update_crimediffs(case_numbers):
                 continue
             else:
                 f = open(fname, 'wb')
-                f.write(stored, indent=4)
+                f.write(stored)
                 f.close()
         else:
             f = open(fname, 'wb')
