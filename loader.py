@@ -1,4 +1,5 @@
 import requests
+import time
 from base64 import b64decode
 import os
 import json
@@ -193,6 +194,7 @@ def get_weather(dates):
             up = coll.update({'DATE': datetime.strptime(date, '%Y%m%d')}, update, upsert=True)
         else:
             raise WeatherError('Wunderground API responded with %s: %s' % (weat.status_code, weat.content[300:]))
+        time.sleep(7)
     return 'Updated weather for %s' % ', '.join(dates)
 
 def get_most_wanted():
