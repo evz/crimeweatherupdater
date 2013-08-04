@@ -14,7 +14,7 @@ CELERY_MONGODB_BACKEND_SETTINGS = {
     "password": os.environ['UPDATE_MONGO_PW'],
 }
 CELERY_DEFAULT_QUEUE = 'crimevsweather'
-CELERY_LOG_FILE=os.path.join(os.path.dirname(__file__), '../../run/celery.log')
+#CELERY_LOG_FILE=os.path.join(os.path.dirname(__file__), '../../run/celery.log')
 
 CELERYBEAT_SCHEDULE = {
     'load-everything': {

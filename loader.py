@@ -96,7 +96,7 @@ def update_crimediffs(case_numbers):
         updated_on = case['updated_on'].strftime('%a, %d %b %Y %H:%M:%S %z')
         os.environ['GIT_COMMITTER_DATE'] = updated_on
         g.add(fname)
-        g.commit(message='Case Number %s updated at %s' % (case['case_number'], updated_on, author='eric@bahai.us'))
+        g.commit(message='Case Number %s updated at %s' % (case['case_number'], updated_on), author='eric@bahai.us')
         committed += 1
     if committed > 0:
         o = repo.remotes.origin
@@ -121,7 +121,7 @@ def get_crimes():
     coll = db['crime']
     iucr_codes = db['iucr']
     db.authenticate(MONGO_USER, password=MONGO_PW)
-    crimes = fetch_crimes(10000)
+    crimes = fetch_crimes(20000)
     case_numbers = [c['case_number'] for c in crimes]
     existing = 0
     new = 0

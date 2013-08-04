@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-VENV=/home/crimeweather/sites/crime.static-eric.com/
+VENV=/home/crimeweather/sites/crime.static-eric.com
 LOGFILE=$VENV/run/celery.log
 LOGDIR=$(dirname $LOGFILE)
 NUM_WORKERS=3
