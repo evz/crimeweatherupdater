@@ -164,10 +164,10 @@ def get_crimes():
             existing += 1
         else:
             new += 1
-    skipped, committed = update_crimediffs(case_numbers)
+    # skipped, committed = update_crimediffs(case_numbers)
     unique_dates = list(set([datetime.strftime(d, '%Y%m%d') for d in dates]))
     weather_updated = get_weather(unique_dates)
-    return 'Updated %s, Created %s %s, Skipped %s, Committed %s' % (existing, new, weather_updated, skipped, committed)
+    return 'Updated %s, Created %s %s' % (existing, new, weather_updated)
 
 def get_weather(dates):
     c = pymongo.MongoClient()
