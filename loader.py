@@ -58,9 +58,12 @@ def geocode_it(block, coll):
         r = requests.get(u, params=params)
         resp = json.loads(r.content.decode('utf-8'))
         locations = resp['results'][0]['locations']
-        p = (float(locations[0]['latLng']['lng']), float(locations[0]['latLng']['lat']))
-        feature = {'type': 'Point', 'coordinates': p}
-        return feature
+        if locations:
+            p = (float(locations[0]['latLng']['lng']), float(locations[0]['latLng']['lat']))
+            feature = {'type': 'Point', 'coordinates': p}
+            return feature
+        else:
+            return None
 
 def update_crimediffs(case_numbers):
     c = pymongo.MongoClient()
