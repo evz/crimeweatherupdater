@@ -15,7 +15,7 @@ from bson import json_util
 from hashlib import sha1
 
 # just 2013 data
-CRIMES = 'http://data.cityofchicago.org/resource/a95h-gwzm.json'
+CRIMES = 'http://data.cityofchicago.org/resource/ijzp-q8t2.json'
 
 MOST_WANTED = 'http://api1.chicagopolice.org/clearpath/api/1.0/mostWanted/list'
 MUGSHOTS = 'http://api1.chicagopolice.org/clearpath/api/1.0/mugshots'
