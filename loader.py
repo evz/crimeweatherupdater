@@ -14,7 +14,6 @@ from git import Repo, GitCommandError
 from bson import json_util
 from hashlib import sha1
 
-# just 2013 data
 CRIMES = 'http://data.cityofchicago.org/resource/ijzp-q8t2.json'
 
 MOST_WANTED = 'http://api1.chicagopolice.org/clearpath/api/1.0/mostWanted/list'
@@ -168,9 +167,9 @@ def get_crimes():
         else:
             new += 1
     # skipped, committed = update_crimediffs(case_numbers)
-    unique_dates = list(set([datetime.strftime(d, '%Y%m%d') for d in dates]))
-    weather_updated = get_weather(unique_dates)
-    return 'Updated %s, Created %s %s' % (existing, new, weather_updated)
+    # unique_dates = list(set([datetime.strftime(d, '%Y%m%d') for d in dates]))
+    # weather_updated = get_weather(unique_dates)
+    return 'Updated %s, Created %s %s' % (existing, new)
 
 def get_weather(dates):
     c = pymongo.MongoClient()
