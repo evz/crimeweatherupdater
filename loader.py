@@ -110,7 +110,7 @@ def update_crimediffs(case_numbers):
 def fetch_crimes(count):
     crimes = []
     for offset in range(0, count, 1000):
-        crime_offset = requests.get(CRIMES, params={'$limit': 1000, '$offset': offset})
+        crime_offset = requests.get(CRIMES, params={'$limit': 1000, '$offset': offset, '$order': 'date DESC'})
         if crime_offset.status_code == 200:
             crimes.extend(crime_offset.json())
         else:
